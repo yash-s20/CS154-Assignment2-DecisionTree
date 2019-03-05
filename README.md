@@ -1,0 +1,2 @@
+# CS154-Assignment2-DecisionTree
+cs154 assignment 2, implemented on scheme based language Racket, based on the concept of decision trees in machine learning applied upon different types of dataset, using the ID3 algorithm.
