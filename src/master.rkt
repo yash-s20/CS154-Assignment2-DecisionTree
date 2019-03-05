@@ -6,9 +6,6 @@
 (provide toytrain)
 (define toytrain "../data/toy_train.csv")
 
-(define (read-file file-path)
-  (call-with-input-file file-path
-    (lambda (fin) (port->string fin))))
 
 (provide titanictrain)
 (define titanictrain "../data/titanic_train.csv")
@@ -26,28 +23,30 @@
 ;further split each line at commas
 ;so then we have a list of list of strings
 (provide toy-raw)
-(define toy-raw '...)
+(define toy-raw (read-csv-file toytrain)) ;'("Result"  <- class, attributes ->  "Feature1" "Feature2" "Feature2" "Feature4")
 
 (provide titanic-raw)
-(define titanic-raw "../data/titanic_raw.csv")
+(define titanic-raw (map (lambda(x) (cddr x)) (read-csv-file titanictrain))) ;'("Survived" <- class, attributes -> "Pclass" "Sex" "Age" "SibSp" "Parch" "Fare" "Embarked")
 
 (provide mushroom-raw)
-(define mushroom-raw "../data/mushroom_raw.csv")
+(define mushroom-raw (read-csv-file mushroomtrain)) ;'("edible"  <- class, attributes ->  "cap-shape" "Cap-surface" "bruises" "odor" "gill-attachment" "gill-spacing" "gill-size" "stalk-shape" "ring-number" "population" "habitat")
 
 ;function to convert data to internal numerical format
 ;(features . result)
+(define (map-string->number lst)
+  (map string->number lst))
 (provide format)
-(define (format data) '...)
+(define (format data) (map (lambda(x) (let ([y (map-string->number x)]) (cons (cdr y) (car y)))) data))
 
 ;list of (features . result)
 (provide toy)
-(define toy '...)
+(define toy (cdr (format toy-raw)))
 
 (provide titanic)
-(define titanic '...)
+(define titanic (cdr (format titanic-raw)))
 
 (provide mushroom)
-(define mushroom '...)
+(define mushroom (cdr (format mushroom-raw)))
 
 ;============================================================================================================
 ;============================================================================================================
@@ -63,8 +62,8 @@
 ;get entropy of dataset
 (provide get-entropy)
 (define (get-entropy data)
-  '...
-  )
+  (let* ([z (/ (count (lambda(x) (zero? (cdr x))) data) (length data))])
+    (- (+ (* z (log z 2)) (* (- 1 z) (log (- 1 z) 2))))))
 
 ;find the difference in entropy achieved
 ;by applying a decision function f to the data
