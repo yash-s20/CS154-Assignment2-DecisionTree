@@ -23,13 +23,13 @@
 ;further split each line at commas
 ;so then we have a list of list of strings
 (provide toy-raw)
-(define toy-raw (read-csv-file toytrain)) ;'("Result"  <- class, attributes ->  "Feature1" "Feature2" "Feature2" "Feature4")
+(define toy-raw (cdr (read-csv-file toytrain))) ;'("Result"  <- class, attributes ->  "Feature1" "Feature2" "Feature2" "Feature4")
 
 (provide titanic-raw)
-(define titanic-raw (map (lambda(x) (cddr x)) (read-csv-file titanictrain))) ;'("Survived" <- class, attributes -> "Pclass" "Sex" "Age" "SibSp" "Parch" "Fare" "Embarked")
+(define titanic-raw (cdr (map (lambda(x) (cddr x)) (read-csv-file titanictrain)))) ;'("Survived" <- class, attributes -> "Pclass" "Sex" "Age" "SibSp" "Parch" "Fare" "Embarked")
 
 (provide mushroom-raw)
-(define mushroom-raw (read-csv-file mushroomtrain)) ;'("edible"  <- class, attributes ->  "cap-shape" "Cap-surface" "bruises" "odor" "gill-attachment" "gill-spacing" "gill-size" "stalk-shape" "ring-number" "population" "habitat")
+(define mushroom-raw (cdr (read-csv-file mushroomtrain))) ;'("edible"  <- class, attributes ->  "cap-shape" "Cap-surface" "bruises" "odor" "gill-attachment" "gill-spacing" "gill-size" "stalk-shape" "ring-number" "population" "habitat")
 
 ;function to convert data to internal numerical format
 ;(features . result)
@@ -40,13 +40,13 @@
 
 ;list of (features . result)
 (provide toy)
-(define toy (cdr (format toy-raw)))
+(define toy (format toy-raw))
 
 (provide titanic)
-(define titanic (cdr (format titanic-raw)))
+(define titanic (format titanic-raw))
 
 (provide mushroom)
-(define mushroom (cdr (format mushroom-raw)))
+(define mushroom (format mushroom-raw))
 
 ;============================================================================================================
 ;============================================================================================================
@@ -59,18 +59,43 @@
   '...
   )
 
+(define toy-features
+  (list y1 y2 y3 y4>62))
+
+(define titanic-features
+  (list pclass sex age>25 sibsp parch fare>50 emb))
+
+(define mushroom-features
+  (list cshape csurf bruise odor gatch gspace gsize sshape nring pop hab))
+
 ;get entropy of dataset
+(define (x-logx x)
+  (if (= x 0) 0 (* x (log x 2))))
 (provide get-entropy)
 (define (get-entropy data)
   (let* ([z (/ (count (lambda(x) (zero? (cdr x))) data) (length data))])
-    (- (+ (* z (log z 2)) (* (- 1 z) (log (- 1 z) 2))))))
+    (- (+ (x-logx z) (x-logx (- 1 z))))))
 
 ;find the difference in entropy achieved
 ;by applying a decision function f to the data
+(define (list-of-empty-lists k acc)
+  (match k
+    [0 acc]
+    [_ (list-of-empty-lists (- k 1) (cons '() acc))]))
+ 
+
 (provide entropy-diff)
 (define (entropy-diff f data)
-  '...
-  )
+  (define (weighted-average-entropy buckets)
+    (/ (foldr (lambda(x y) (+ (* (get-entropy x) (length x)) y)) 0 buckets) (length (append* buckets))))
+  (define (bucketing data buckets)
+    (define (insert-at lst k x)
+      (if (= k 0) (cons (cons x (car lst)) (cdr lst)) (cons (car lst) (insert-at (cdr lst) (- k 1) x))))
+    (if (null? data) buckets (bucketing (cdr data) (insert-at buckets (f (caar data)) (car data)))))
+  (let* ([k (+ 1 (apply max (remove-duplicates (map f (map car data)))))]
+         [emp (list-of-empty-lists k '())]
+         [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp))])
+    (- (get-entropy data) (weighted-average-entropy buckets))))
 
 ;choose the decision function that most reduces entropy of the data
 (provide choose-f)
