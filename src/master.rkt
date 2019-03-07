@@ -82,35 +82,44 @@
   (match k
     [0 acc]
     [_ (list-of-empty-lists (- k 1) (cons '() acc))]))
- 
+
+
+(define (bucketing data buckets f)
+    (define (insert-at lst k x)
+      (if (= k 0) (cons (cons x (car lst)) (cdr lst)) (cons (car lst) (insert-at (cdr lst) (- k 1) x))))
+    (if (null? data) buckets (bucketing (cdr data) (insert-at buckets (f (caar data)) (car data)) f)))
 
 (provide entropy-diff)
 (define (entropy-diff f data)
   (define (weighted-average-entropy buckets)
     (/ (foldr (lambda(x y) (+ (* (get-entropy x) (length x)) y)) 0 buckets) (length (append* buckets))))
-  (define (bucketing data buckets)
-    (define (insert-at lst k x)
-      (if (= k 0) (cons (cons x (car lst)) (cdr lst)) (cons (car lst) (insert-at (cdr lst) (- k 1) x))))
-    (if (null? data) buckets (bucketing (cdr data) (insert-at buckets (f (caar data)) (car data)))))
   (let* ([k (+ 1 (apply max (remove-duplicates (map f (map car data)))))]
          [emp (list-of-empty-lists k '())]
-         [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp))])
+         [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp f))])
     (- (get-entropy data) (weighted-average-entropy buckets))))
+
 
 ;choose the decision function that most reduces entropy of the data
 (provide choose-f)
 (define (choose-f candidates data) ; returns a decision function
-  '...
-  )
+  (argmax (lambda(f) (entropy-diff (cdr f) data)) candidates))
 
 (provide DTree)
 (struct DTree (desc func kids))
 
+(define (probability-one data)
+  (/ (count (lambda(x) (not (zero? x))) (map cdr data)) (length data)))
 ;build a decision tree (depth limited) from the candidate decision functions and data
 (provide build-tree)
 (define (build-tree candidates data depth)
-  '...
-  )
+  (if (or (null? candidates) (= depth 0))
+      (DTree (~a (probability-one data)) 0 '())
+      (let* ([f (choose-f candidates data)]
+             [k (+ 1 (apply max (remove-duplicates (map (cdr  f) (map car data)))))]
+             [emp (list-of-empty-lists k '())]
+             [new-cands (remove f candidates)]
+             [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp (cdr f)))])
+        (DTree (car f) (cdr f) (map (lambda(d) (build-tree new-cands d (- depth 1))) buckets)))))
 
 ;given a test data (features only), make a decision according to a decision tree
 ;returns probability of the test data being classified as 1
