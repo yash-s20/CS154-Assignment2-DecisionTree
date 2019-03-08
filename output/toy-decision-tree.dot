@@ -8,22 +8,34 @@ graph "decision-tree" {
 			r00[label="feature1"];
 
 			r00--r000[label="0"];
-				r000[label="0"];
+				r000[label="feature2"];
+
+				r000--r0000[label="0"];
+					r0000[label="0"];
 
 			r00--r001[label="1"];
-				r001[label="0"];
+				r001[label="feature2"];
+
+				r001--r0010[label="0"];
+					r0010[label="0"];
 
 		r0--r01[label="1"];
 			r01[label="feature1"];
 
 			r01--r010[label="0"];
-				r010[label="1"];
+				r010[label="feature2"];
+
+				r010--r0100[label="0"];
+					r0100[label="1"];
 
 		r0--r02[label="2"];
 			r02[label="feature1"];
 
 			r02--r020[label="0"];
-				r020[label="0"];
+				r020[label="feature2"];
+
+				r020--r0200[label="0"];
+					r0200[label="0"];
 
 	r--r1[label="1"];
 		r1[label="feature3"];
@@ -32,27 +44,45 @@ graph "decision-tree" {
 			r10[label="feature1"];
 
 			r10--r100[label="0"];
-				r100[label="3/4"];
+				r100[label="feature2"];
+
+				r100--r1000[label="0"];
+					r1000[label="3/4"];
 
 			r10--r101[label="1"];
-				r101[label="1/3"];
+				r101[label="feature2"];
+
+				r101--r1010[label="0"];
+					r1010[label="1/3"];
 
 		r1--r11[label="1"];
 			r11[label="feature1"];
 
 			r11--r110[label="0"];
-				r110[label="1"];
+				r110[label="feature2"];
+
+				r110--r1100[label="0"];
+					r1100[label="1"];
 
 			r11--r111[label="1"];
-				r111[label="1/2"];
+				r111[label="feature2"];
+
+				r111--r1110[label="0"];
+					r1110[label="1/2"];
 
 		r1--r12[label="2"];
 			r12[label="feature1"];
 
 			r12--r120[label="0"];
-				r120[label="1"];
+				r120[label="feature2"];
+
+				r120--r1200[label="0"];
+					r1200[label="1"];
 
 			r12--r121[label="1"];
-				r121[label="1"];
+				r121[label="feature2"];
+
+				r121--r1210[label="0"];
+					r1210[label="1"];
 
 }

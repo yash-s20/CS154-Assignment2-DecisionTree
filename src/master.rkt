@@ -109,24 +109,34 @@
 
 (define (probability-one data)
   (/ (count (lambda(x) (not (zero? x))) (map cdr data)) (length data)))
+
+(define (find-vals buckets acc f)
+  (match buckets
+    ['() (reverse acc)]
+    [(cons d rest) (find-vals rest (cons (f (caar d)) acc) f)]))
 ;build a decision tree (depth limited) from the candidate decision functions and data
 (provide build-tree)
 (define (build-tree candidates data depth)
   (if (or (null? candidates) (= depth 0))
       (DTree (~a (probability-one data)) 0 '())
       (let* ([f (choose-f candidates data)]
-             [k (+ 1 (apply max (remove-duplicates (map (cdr  f) (map car data)))))]
+             [vals (sort (remove-duplicates (map (cdr f) (map car data))) <)]
+             [k (+ 1 (apply max vals))]
              [emp (list-of-empty-lists k '())]
              [new-cands (remove f candidates)]
-             [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp (cdr f)))])
-        (DTree (car f) (cdr f) (map (lambda(d) (build-tree new-cands d (- depth 1))) buckets)))))
+             [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp (cdr f)))]
+             [new-vals (find-vals buckets '() (cdr f))])
+        (DTree (car f) (cons (cdr f) new-vals) (map (lambda(d) (build-tree new-cands d (- depth 1))) buckets)))))
 
 ;given a test data (features only), make a decision according to a decision tree
 ;returns probability of the test data being classified as 1
+
+; use index-of to find where is the child to traverse down on 
 (provide make-decision)
 (define (make-decision tree test)
- '...
-  )
+ (match tree
+   [(DTree s 0 '()) (string->number s)]
+   [(DTree _ (cons f v) c) (if (index-of v (f test)) (make-decision (list-ref c (index-of v (f test))) test) 0)]))
 
 ;============================================================================================================
 ;============================================================================================================
