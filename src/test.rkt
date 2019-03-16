@@ -5,7 +5,7 @@
 (require "testdata.rkt")
 
 (define dotfile
-  (display-tree (build-tree (list y1 y2 y3 y4>62) toy 2) toyout)
+  (display-tree (build-tree (list y1 y2 y3 y4>62) toy 4) toyout)
   )
 
 (define test1

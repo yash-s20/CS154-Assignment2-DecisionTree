@@ -56,24 +56,25 @@
 ;used to find probability value at leaf
 (provide get-leaf-prob)
 (define (get-leaf-prob data)
-  '...
+  (if (null? data) 0
+      (/ (count (lambda(x) (not (zero? (cdr x)))) data) (length data)))
   )
 
-(define toy-features
-  (list y1 y2 y3 y4>62))
+;(define toy-features
+;  (list y1 y2 y3 y4>62))
 
-(define titanic-features
-  (list pclass sex age>25 sibsp parch fare>50 emb))
+;(define titanic-features
+;  (list pclass sex age>25 sibsp parch fare>50 emb))
 
-(define mushroom-features
-  (list cshape csurf bruise odor gatch gspace gsize sshape nring pop hab))
+;(define mushroom-features
+;  (list cshape csurf bruise odor gatch gspace gsize sshape nring pop hab))
 
 ;get entropy of dataset
 (define (x-logx x)
   (if (= x 0) 0 (* x (log x 2))))
 (provide get-entropy)
 (define (get-entropy data)
-  (let* ([z (/ (count (lambda(x) (zero? (cdr x))) data) (length data))])
+  (let* ([z (get-leaf-prob data)])
     (- (+ (x-logx z) (x-logx (- 1 z))))))
 
 ;find the difference in entropy achieved
@@ -126,6 +127,7 @@
              [new-cands (remove f candidates)]
              [buckets (filter (lambda(x) (not (null? x))) (bucketing data emp (cdr f)))]
              [new-vals (find-vals buckets '() (cdr f))])
+        
         (DTree (car f) (cons (cdr f) new-vals) (map (lambda(d) (build-tree new-cands d (- depth 1))) buckets)))))
 
 ;given a test data (features only), make a decision according to a decision tree
@@ -149,23 +151,47 @@
 
 ;generate tree edges (parent to child) and recurse to generate sub trees
 (define (dot-child children prefix tabs)
-  (apply string-append (map (lambda (t) (string-append tabs "r" prefix "--" "r" prefix (~a (cdr t)) "[label=\"" (~a (cdr t)) "\"];" "\n" (dot-helper (car t) (string-append prefix (~a (cdr t))) (string-append tabs "\t")))) children))
+  (apply string-append
+         (map (lambda (t)
+                (string-append tabs
+                               "r" prefix
+                               "--"
+                               "r" prefix "t" (~a (cdr t))
+                               "[label=\"" (~a (cdr t)) "\"];" "\n"
+                               (dot-helper (car t)
+                                           (string-append prefix "t" (~a (cdr t)))
+                                           (string-append tabs "\t")
+                                           )
+                               )
+                ) children
+                  )
+         )
   )
 
 ;generate tree nodes and call function to generate edges
 (define (dot-helper tree prefix tabs)
   (let* ([node (match tree [(DTree d f c) (cons d c)])]
-         [f (car node)]
+         [d (car node)]
          [c (cdr node)])
-    (string-append tabs "r" prefix "[label=\"" f "\"];" "\n\n" (dot-child (pair-idx c 0) prefix tabs))
+    (string-append tabs
+                   "r"
+                   prefix
+                   "[label=\"" d "\"];" "\n\n"
+                   (dot-child (pair-idx c 0) prefix tabs)
+                   )
     )
   )
 
 ;output tree (dot file)
 (provide display-tree)
-(define (display-tree tree dtfile)
-  (write-file dtfile (string-append "graph \"decision-tree\" {" "\n" (dot-helper tree "" "\t") "}"))
+(define (display-tree tree outfile)
+  (write-file outfile (string-append "graph \"decision-tree\" {" "\n"
+                                     (dot-helper tree "" "\t")
+                                     "}"
+                                     )
+              )
   )
+
 ;============================================================================================================
 ;============================================================================================================
 ;============================================================================================================
