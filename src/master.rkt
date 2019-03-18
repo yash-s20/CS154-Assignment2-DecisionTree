@@ -60,15 +60,6 @@
       (/ (count (lambda(x) (not (zero? (cdr x)))) data) (length data)))
   )
 
-;(define toy-features
-;  (list y1 y2 y3 y4>62))
-
-;(define titanic-features
-;  (list pclass sex age>25 sibsp parch fare>50 emb))
-
-;(define mushroom-features
-;  (list cshape csurf bruise odor gatch gspace gsize sshape nring pop hab))
-
 ;get entropy of dataset
 (define (x-logx x)
   (if (= x 0) 0 (* x (log x 2))))
@@ -108,8 +99,6 @@
 (provide DTree)
 (struct DTree (desc func kids))
 
-(define (probability-one data)
-  (/ (count (lambda(x) (not (zero? x))) (map cdr data)) (length data)))
 
 (define (find-vals buckets acc f)
   (match buckets
@@ -119,7 +108,7 @@
 (provide build-tree)
 (define (build-tree candidates data depth)
   (if (or (null? candidates) (= depth 0))
-      (DTree (~a (probability-one data)) 0 '())
+      (DTree (~a (get-leaf-prob data)) 0 '())
       (let* ([f (choose-f candidates data)]
              [vals (sort (remove-duplicates (map (cdr f) (map car data))) <)]
              [k (+ 1 (apply max vals))]
